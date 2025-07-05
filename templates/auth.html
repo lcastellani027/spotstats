@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Spotify Web App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding-top: 100px;
+            background-color: #121212;
+            color: white;
+        }
+        .button {
+            background-color: #1DB954;
+            border: none;
+            color: white;
+            padding: 15px 30px;
+            font-size: 16px;
+            border-radius: 30px;
+            text-decoration: none;
+            transition: background-color 0.3s ease;
+        }
+        .button:hover {
+            background-color: #1ed760;
+        }
+    </style>
+</head>
+<body>
+    <h1>Welcome to Your Spotify Stats App</h1>
+    <p>Log in with Spotify to start creating playlists and exploring your music data.</p>
+    <a class="button" href="{{ auth_url }}">Connect with Spotify</a>
+</body>
+</html>
