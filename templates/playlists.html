@@ -5,6 +5,12 @@
     <title>Title</title>
 </head>
 <body>
-
+ <h1>Your Spotify Playlists</h1>
+  <ul>
+    {% for playlist in playlists %}
+      <li>{{ playlist.name }} ({{ playlist.track_count }} tracks)</li>
+     <!-- <img src={{playlist.image_url}} alt="icon" /> -->
+    {% endfor %}
+  </ul>
 </body>
 </html>

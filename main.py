@@ -11,24 +11,11 @@ client_id = "7a84e47e4908413cbbb2386b7e1e2aeb"
 client_secret = "2e83d8fd6af3436491f364203e5c6757"
 redirect_uri = "http://localhost:8000/callback"
 
-prog_scope = ["playlist-read-private", "playlist-read-collaborative"]
+prog_scope = ["playlist-read-private", "playlist-read-collaborative", "user-top-read"]
 app = FastAPI()
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
-
-def get_access_token(auth_code: str):
-    response = requests.post(
-        "https://accounts.spotify.com/api/token",
-        data={
-            "grant_type": "authorization_code",
-            "code": auth_code,
-            "redirect_uri": redirect_uri,
-        },
-        auth=(client_id, client_secret),
-    )
-    access_token = response.json()["access_token"]
-    return {"Authorization": "Bearer " + access_token}, access_token
 
 
 @app.get("/favicon.ico", include_in_schema=False)
@@ -41,14 +28,34 @@ async def root(request: Request):
     auth_url = f"https://accounts.spotify.com/authorize?response_type=code&client_id={client_id}&redirect_uri={redirect_uri}&scope={' '.join(scope)}"
     return templates.TemplateResponse("auth.html", {"request": request, "auth_url": auth_url})
 
+@app.get("/callback") #get user auth and redirect to dashboard
+async def callback(code):
+
+    response = requests.post(
+        "https://accounts.spotify.com/api/token",
+        data={
+            "grant_type": "authorization_code",
+            "code": code,
+            "redirect_uri": redirect_uri,
+        },
+        auth=(client_id, client_secret),
+    )
+    access_token = response.json()["access_token"]
+    headers = {"Authorization": "Bearer " + access_token}
+
+    red_response = RedirectResponse(url=f"/dashboard", headers=headers)
+    red_response.set_cookie(key="access_token", value=access_token, httponly=True, secure=False)
+
+    return red_response
+
 @app.get("/dashboard")
-async def dashboard(request: Request, user_id: str):
-    return templates.TemplateResponse("landing.html", {"request": request, "user_id": user_id})
+async def dashboard(request: Request):
+    return templates.TemplateResponse("landing.html", {"request": request})
 
 @app.get("/playlists")
-async def dashboard(request:Request, user_id: str, access_token: str = Cookie(None)):
+async def dashboard(request:Request, access_token: str = Cookie(None)):
     headers = {"Authorization": f"Bearer {access_token}"}
-    url = f"https://api.spotify.com/v1/users/{user_id}/playlists?limit=50"
+    url = f"https://api.spotify.com/v1/me/playlists?limit=50"
     playlists = []
 
 
@@ -58,27 +65,45 @@ async def dashboard(request:Request, user_id: str, access_token: str = Cookie(No
 
 
         for item in data.get("items", []):
+            imgs = item.get("images", [])
+            if imgs is not None:
+                img_url = imgs[0].get("url")
+
             playlists.append({
                 "name": item.get("name"),
                 "id": item.get("id"),
-                "track_count": item.get("tracks", {}).get("total")
+                "track_count": item.get("tracks", {}).get("total"),
+                "image_url": img_url,
             })
         url = data.get("next")
-    return {"playlists": playlists}
+    return templates.TemplateResponse("playlists.html", {"request": request, "playlists": playlists})
+
+@app.get("/profile")
+async def profile(request: Request, access_token: str = Cookie(None)):
+    headers = {"Authorization": f"Bearer {access_token}"}
+
+    url = f"https://api.spotify.com/v1/me"
+
+    response = requests.get(url=url, headers=headers)
+    data = response.json()
+
+    img = data.get("images", [])
+    if img is not None:
+        img_url = img[0].get("url")
+    else:
+        img_url = f"static/blank_pfp.jpg"
+
+    details = [{
+        "display_name": data.get("display_name"),
+        "followers": data.get("followers", {}).get("total"),
+        "pfp": img_url
+    }]
+
+    return templates.TemplateResponse("profile.html", {"request": request, "user_info": details})
 
 
 
-@app.get("/callback")
-async def callback(code):
 
-    headers, token = get_access_token(code)
-    response = requests.get("https://api.spotify.com/v1/me", headers = headers)
-    user_id = response.json()["id"]
-
-    red_response = RedirectResponse(url=f"/dashboard?user_id={user_id}", headers=headers)
-    red_response.set_cookie(key="access_token", value=token, httponly=True, secure=False)
-
-    return red_response
 
 
 
