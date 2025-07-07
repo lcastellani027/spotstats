@@ -68,7 +68,8 @@ async def dashboard(request:Request, access_token: str = Cookie(None)):
             imgs = item.get("images", [])
             if imgs is not None:
                 img_url = imgs[0].get("url")
-
+            else:
+                img_url = f"static/blank_pfp.jpg"
             playlists.append({
                 "name": item.get("name"),
                 "id": item.get("id"),
@@ -93,16 +94,67 @@ async def profile(request: Request, access_token: str = Cookie(None)):
     else:
         img_url = f"static/blank_pfp.jpg"
 
-    details = [{
+    details = {
         "display_name": data.get("display_name"),
         "followers": data.get("followers", {}).get("total"),
         "pfp": img_url
-    }]
+    }
 
     return templates.TemplateResponse("profile.html", {"request": request, "user_info": details})
 
+@app.get("/analytics")
+async def analytics(request: Request, access_token: str = Cookie(None)):
+    headers = {"Authorization": f"Bearer {access_token}"}
+
+    artists = []
+    tracks = []
+
+    #get user top artists
+    art_url = f'https://api.spotify.com/v1/me/top/artists?limit=5'
+    art_response = requests.get(url=art_url, headers=headers)
+    art_data = art_response.json()
+
+    for item in art_data.get("items", []):
+
+        img = item.get("images", [])
+        if img is not None:
+            img_url = img[0].get("url")
+        else:
+            img_url = f"static/blank_pfp.jpg"
+
+        artists.append({
+            "name": item.get("name"),
+            "id": item.get("id"),
+            "genres": item.get("genres"),
+            "image_url": img_url,
+        })
 
 
+
+    #get user top songs
+    track_url = f'https://api.spotify.com/v1/me/top/tracks?limit=25'
+    track_response = requests.get(url=track_url, headers=headers)
+    track_data = track_response.json()
+
+    for item in track_data.get("items", []):
+
+        album = item.get("album", {})
+        artist = item.get("artists", [])
+
+        tracks.append({
+            "name": item.get("name"),
+            "id": item.get("id"),
+            "album_url": album.get("images", [])[0].get("url"),
+            "album_external_url": album.get("external_urls", {}).get("spotify"),
+            "album_name": album.get("name"),
+            "artist_external_url": artist[0].get("external_urls", {}).get("spotify"),
+            "artist_name": artist[0].get("name"),
+        })
+
+    print(tracks)
+    print(artists)
+
+    return templates.TemplateResponse("analytics.html", {"request": request, "artist_info": artists, "track_info": tracks})
 
 
 

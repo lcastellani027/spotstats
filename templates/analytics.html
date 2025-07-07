@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Song Analytics</title>
+</head>
+<body>
+    <h1>Your Top Artists</h1>
+      <ul>
+        {% for artist in artist_info %}
+          <li>{{ artist.name }} ({{ artist.genres }})</li>
+        {% endfor %}
+      </ul>
+    <h1>Your Top Songs</h1>
+      <ul>
+        {% for track in track_info %}
+          <li>{{ track.name }} (by {{ track.artist_name }})</li>
+        {% endfor %}
+      </ul>
+</body>
+</html>
