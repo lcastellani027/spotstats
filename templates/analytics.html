@@ -11,11 +11,35 @@
           <li>{{ artist.name }} ({{ artist.genres }})</li>
         {% endfor %}
       </ul>
+    <a class="button" onclick="loadArtistAnalytics('short_term')">Last 4 Weeks</a>
+    <a class="button" onclick="loadArtistAnalytics('medium_term')">Last 6 Months</a>
+    <a class="button" onclick="loadArtistAnalytics('long_term')">Last Year</a>
+
     <h1>Your Top Songs</h1>
       <ul>
         {% for track in track_info %}
           <li>{{ track.name }} (by {{ track.artist_name }})</li>
         {% endfor %}
       </ul>
+    <a class="button" onclick="loadTrackAnalytics('short_term')">Last 4 Weeks</a>
+    <a class="button" onclick="loadTrackAnalytics('medium_term')">Last 6 Months</a>
+    <a class="button" onclick="loadTrackAnalytics('long_term')">Last Year</a>
+
+
+<script>
+    async function loadArtistAnalytics(timeRange) {
+        const res = await fetch(`/api/analytics?time_range=${timeRange}`);
+        const data = await res.join();
+
+
+    }
+</script>
+
+<script>
+    async function loadTrackAnalytics(timeRange) {
+
+    }
+</script>
 </body>
 </html>
+

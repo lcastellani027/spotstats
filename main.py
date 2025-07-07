@@ -102,6 +102,17 @@ async def profile(request: Request, access_token: str = Cookie(None)):
 
     return templates.TemplateResponse("profile.html", {"request": request, "user_info": details})
 
+
+@app.get("/api/analytics/artists")
+async def analytics(request: Request, time_range: str, access_token: str = Cookie(None)):
+    headers = {"Authorization": f"Bearer {access_token}"}
+
+
+@app.get("/api/analytics/tracks")
+async def analytics(request: Request, time_range: str, access_token: str = Cookie(None)):
+    headers = {"Authorization": f"Bearer {access_token}"}
+
+
 @app.get("/analytics")
 async def analytics(request: Request, access_token: str = Cookie(None)):
     headers = {"Authorization": f"Bearer {access_token}"}
