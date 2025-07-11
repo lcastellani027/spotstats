@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Rank Your Favorite Artists Tracks!</title>
+</head>
+
+<div id="spinner" style="display: none;">
+    <div class="loader"></div>
+</div>
+
+<style>
+.loader {
+  border: 8px solid #f3f3f3;
+  border-top: 8px solid #1DB954; /* Spotify green */
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  animation: spin 1s linear infinite;
+  margin: 50px auto;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+</style>
+
+<body>
+    <h1>Your Top Artists</h1>
+<ul id="track-list"></ul>
+</body>
+</html>
+
+
+<script>
+    async function loadTracks(artistId) {
+        document.getElementById("spinner").style.display = "block";
+
+        document.getElementById("track-list").innerHTML = "";
+
+        const response = await fetch(`/api/artist-tracks?artist_id=${artistId}`);
+        const data = await response.json();
+
+        const trackList = document.getElementById("track-list");
+        trackList.innerHTML = ""; // Clear old data
+
+        data.tracks.forEach(track => {
+            const li = document.createElement("li");
+            li.textContent = `${track.name} (${Math.round(track.duration_ms / 60000)} min)`;
+            trackList.appendChild(li);
+        });
+    }
+
+
+</script>

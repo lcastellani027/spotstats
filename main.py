@@ -167,7 +167,61 @@ async def analytics(request: Request, access_token: str = Cookie(None)):
 
     return templates.TemplateResponse("analytics.html", {"request": request, "artist_info": artists, "track_info": tracks})
 
+@app.get("/api/artist-tracks")
+async def ranker(request: Request, access_token: str = Cookie(None), id: str = artist_id):
+    headers = {"Authorization": f"Bearer {access_token}"}
+    #TODO: not require auth here, optional top artist ranking
 
+    artist_uri = "6yJ6QQ3Y5l0s0tn7b0arrO" #peggy
+    #artist_uri = id
+
+    url = f"https://api.spotify.com/v1/artists/{artist_uri}/albums?include_groups=album"
+    #TODO: option for including features, etc from spot api options
+
+    albums = []
+    tracks = []
+
+    while url is not None:
+        response = requests.get(url=url, headers=headers)
+        data = response.json()
+
+        for item in data.get("items", []):
+            imgs = item.get("images", [])
+            if imgs is not None:
+                img_url = imgs[0].get("url")
+            else:
+                img_url = f"static/blank_pfp.jpg"
+            albums.append({
+                "name": item.get("name"),
+                "id": item.get("id"),
+                "image_url": img_url,
+            })
+        url = data.get("next")
+
+    for album in albums:
+
+        album_id = album.get("id")
+        url = f"https://api.spotify.com/v1/albums/{album_id}/tracks?limit=50"
+
+
+        while url is not None:
+            response = requests.get(url=url, headers=headers)
+            data = response.json()
+            for track in data.get("items", []):
+                tracks.append({
+                    "name": track.get("name"),
+                    "id": track.get("id"),
+                    "preview_url": track.get("preview_url"),
+                    "spotify_url": track.get("external_urls", {}).get("spotify"),
+                })
+            url = data.get("next")
+
+    return tracks
+
+
+@app.get("/ranker")
+async def ranker(request: Request, access_token: str = Cookie(None)):
+    return templates.TemplateResponse("ranker.html", {"request": request})
 
 
 if __name__ == "__main__":
