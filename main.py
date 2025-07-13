@@ -6,6 +6,7 @@ import requests
 import uvicorn
 from starlette.responses import RedirectResponse
 from fastapi import Cookie
+import random
 
 client_id = "7a84e47e4908413cbbb2386b7e1e2aeb"
 client_secret = "2e83d8fd6af3436491f364203e5c6757"
@@ -17,6 +18,7 @@ app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
+ranking_tracks = []
 
 @app.get("/favicon.ico", include_in_schema=False)
 async def favicon():
@@ -167,16 +169,34 @@ async def analytics(request: Request, access_token: str = Cookie(None)):
 
     return templates.TemplateResponse("analytics.html", {"request": request, "artist_info": artists, "track_info": tracks})
 
-@app.get("/api/artist-tracks")
-async def ranker(request: Request, access_token: str = Cookie(None), id: str = artist_id):
-    headers = {"Authorization": f"Bearer {access_token}"}
-    #TODO: not require auth here, optional top artist ranking
+#========================================================#
+#======================== RANKER ========================#
+#========================================================#
 
-    artist_uri = "6yJ6QQ3Y5l0s0tn7b0arrO" #peggy
-    #artist_uri = id
+@app.get("/api/rank/next") #return next randomized track to user
+async def ranker():
+    if not ranking_tracks:
+        return None
+
+    track = ranking_tracks.pop()
+
+
+    return {
+        "track_name": track["name"],
+        "track_id": track["id"],
+        "album_name": track["album"]
+    }
+
+@app.get("/ranker")
+async def ranker(request: Request, access_token: str = Cookie(None)):
+    headers = {"Authorization": f"Bearer {access_token}"}
+    # TODO: not require auth here, optional top artist ranking
+
+    artist_uri = "6yJ6QQ3Y5l0s0tn7b0arrO"  # peggy
+    # artist_uri = id
 
     url = f"https://api.spotify.com/v1/artists/{artist_uri}/albums?include_groups=album"
-    #TODO: option for including features, etc from spot api options
+    # TODO: option for including features, etc from spot api options
 
     albums = []
     tracks = []
@@ -203,7 +223,6 @@ async def ranker(request: Request, access_token: str = Cookie(None), id: str = a
         album_id = album.get("id")
         url = f"https://api.spotify.com/v1/albums/{album_id}/tracks?limit=50"
 
-
         while url is not None:
             response = requests.get(url=url, headers=headers)
             data = response.json()
@@ -211,16 +230,14 @@ async def ranker(request: Request, access_token: str = Cookie(None), id: str = a
                 tracks.append({
                     "name": track.get("name"),
                     "id": track.get("id"),
-                    "preview_url": track.get("preview_url"),
-                    "spotify_url": track.get("external_urls", {}).get("spotify"),
+                    "album": album.get("name")
                 })
             url = data.get("next")
 
-    return tracks
+    global ranking_tracks
+    ranking_tracks = tracks
+    random.shuffle(ranking_tracks)
 
-
-@app.get("/ranker")
-async def ranker(request: Request, access_token: str = Cookie(None)):
     return templates.TemplateResponse("ranker.html", {"request": request})
 
 

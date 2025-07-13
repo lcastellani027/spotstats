@@ -1,56 +1,104 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    <link href='https://fonts.googleapis.com/css?family=Roboto' rel='stylesheet'>
     <meta charset="UTF-8">
     <title>Rank Your Favorite Artists Tracks!</title>
+    <style>
+        h1 {
+            font-family: Roboto, sans-serif;
+            text-align: center;
+            padding-top: 10px;
+            color: white;
+            background: linear-gradient(90deg, #ff7e5f, #feb47b);
+        }
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding-top: 100px;
+            background-color: #121212;
+            color: white;
+        }
+        .button {
+            background-color: #1DB954;
+            border: none;
+            color: white;
+            display: block;
+            padding: 15px 30px;
+            font-size: 16px;
+            border-radius: 30px;
+            text-decoration: none;
+            transition: background-color 0.3s ease;
+        }
+        .button:hover {
+            background-color: #1ed760;
+        }
+    </style>
 </head>
 
-<div id="spinner" style="display: none;">
-    <div class="loader"></div>
-</div>
-
-<style>
-.loader {
-  border: 8px solid #f3f3f3;
-  border-top: 8px solid #1DB954; /* Spotify green */
-  border-radius: 50%;
-  width: 60px;
-  height: 60px;
-  animation: spin 1s linear infinite;
-  margin: 50px auto;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-</style>
 
 <body>
-    <h1>Your Top Artists</h1>
-<ul id="track-list"></ul>
+    <h1>RANKER</h1>
+    <div class="container">
+        <div id="track-info" style="float:left">
+            <p id="track-name"></p>
+            <iframe id="spot_embed" style="border-radius:12px" width="100%" height="352" frameBorder="0" allowfullscreen="" allow="fullscreen;" loading="lazy"></iframe>
+            <button onclick="getNextTrack()">Generate New Random Track</button>
+        </div>
+
+        <div class="track" data-id="track_id">Track Name</div>
+
+        <div class="tier" id="S"><h3>S Tier</h3></div>
+        <div class="tier" id="A"><h3>A Tier</h3></div>
+        <div class="tier" id="B"><h3>B Tier</h3></div>
+        <div class="tier" id="C"><h3>C Tier</h3></div>
+        <div class="tier" id="D"><h3>D Tier</h3></div>
+        <div class="tier" id="F"><h3>F Tier</h3></div>
+
+    </div>
+    <div style="clear: both;"></div>
+
+
 </body>
 </html>
 
-
 <script>
-    async function loadTracks(artistId) {
-        document.getElementById("spinner").style.display = "block";
 
-        document.getElementById("track-list").innerHTML = "";
+    ['S', 'A', 'B', 'C', 'D', 'F'].forEach(tier => {
+    new Sortable(document.getElementById(tier), {
+        group: 'tracks',
+        animation: 150
+    });
+    });
 
-        const response = await fetch(`/api/artist-tracks?artist_id=${artistId}`);
-        const data = await response.json();
-
-        const trackList = document.getElementById("track-list");
-        trackList.innerHTML = ""; // Clear old data
-
-        data.tracks.forEach(track => {
-            const li = document.createElement("li");
-            li.textContent = `${track.name} (${Math.round(track.duration_ms / 60000)} min)`;
-            trackList.appendChild(li);
-        });
-    }
+let currentTrack = null;
 
 
+async function getNextTrack() {
+    const res = await fetch("api/rank/next");
+    const data = await res.json();
+    currentTrack = data;
+
+    document.getElementById("track-name").textContent = `${data.track_name} on ${data.album_name}`;
+    document.getElementById("spot_embed").src = 'https://open.spotify.com/embed/track/' + data.track_id + '?utm_source=generator';
+
+}
+
+async function rankTrack(rank) {
+
+    await fetch("api/rank/submit", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+            track_id: currentTrack.track_id,
+            ranking: rank
+        })
+    });
+
+    await getNextTrack();
+
+}
+
+window.onload = getNextTrack()
 </script>
