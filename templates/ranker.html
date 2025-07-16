@@ -57,6 +57,7 @@
         .dropzone {
           display: flex;
           flex-wrap: wrap;
+            align-items: stretch;
           gap: 8px;
           min-height: 60px;
           flex: 1;
@@ -77,6 +78,17 @@
 
         .track:hover {
             background-color: #333;
+        }
+
+        .track.hidden {
+            display: none;
+        }
+
+        .drop-indicator {
+          width: 4px;
+            min-height: 50px;
+          background-color: #1DB954;
+          border-radius: 2px;
         }
 
     </style>
@@ -137,28 +149,68 @@
 <!-- TODO: implement spotify sdk to integrate actual player, allow user to play song by clicking on icon in ranking -->
 <script>
 
+    let dropIndicator = document.createElement("div");
+    dropIndicator.className = "drop-indicator";
+
     function allowDrop(e) {
       e.preventDefault();
+      const dropzone = e.currentTarget;
+
+      const dragging = document.querySelector(".dragging");
+      if (!dragging || !dropzone.classList.contains("dropzone")) return;
+
+
+    document.querySelectorAll(".drop-indicator").forEach(el => el.remove());
+
+    const children = [...dropzone.children].filter(el => !el.classList.contains("drop-indicator"));
+
+    let inserted = false;
+      for (const child of children) {
+        const box = child.getBoundingClientRect();
+        const offset = e.clientX - box.left;
+
+        if (offset < box.width / 2) {
+          dropzone.insertBefore(dropIndicator, child);
+          inserted = true;
+          break;
+        }
+      }
+
+      if (!inserted) {
+        dropzone.appendChild(dropIndicator);
+      }
+
     }
 
     function drag(e) {
       e.dataTransfer.setData("text/plain", e.target.id);
       e.target.classList.add("dragging");
 
+      setTimeout(() => {
+        e.target.classList.add("hidden");
+      }, 0);
+    }
+
+    function dragEnd(e) {
+      e.target.classList.remove("dragging", "hidden");
+      document.querySelectorAll(".drop-indicator").forEach(el => el.remove());
     }
 
     function drop(e) {
       e.preventDefault();
       const id = e.dataTransfer.getData("text/plain");
       const track = document.getElementById(id);
-      track.classList.remove("dragging");
+      track.classList.remove("dragging", "hidden");
 
+      const indicator = document.querySelector(".drop-indicator");
 
-      if (e.target.classList.contains("track")) {
-          e.target.parentNode.insertBefore(track, e.target)
-      }
-      else if (e.target.classList.contains("dropzone")) {
-          e.currentTarget.appendChild(track);
+      if (indicator && indicator.parentNode) {
+        indicator.parentNode.insertBefore(track, indicator);
+        indicator.remove();
+      } else if (e.target.classList.contains("track")) {
+        e.target.parentNode.insertBefore(track, e.target);
+      } else if (e.target.classList.contains("dropzone")) {
+        e.target.appendChild(track);
       }
 
       document.getElementById("new-track").disabled = false;
@@ -193,6 +245,9 @@
 
         track.appendChild(text);
         track.appendChild(img);
+
+        track.ondragstart = drag;
+        track.ondragend = dragEnd;
 
         currentTrack = data;
         document.getElementById("incoming").appendChild(track);
