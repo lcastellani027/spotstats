@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     <link href='https://fonts.googleapis.com/css?family=Roboto' rel='stylesheet'>
     <meta charset="UTF-8">
     <title>Rank Your Favorite Artists Tracks!</title>
@@ -34,6 +33,52 @@
         .button:hover {
             background-color: #1ed760;
         }
+        .tiers {
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+        }
+
+        .tier {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          border: 2px solid #1DB954;
+          padding: 10px;
+          min-height: 80px;
+          background-color: #1e1e1e;
+        }
+
+        .tier-label {
+          font-weight: bold;
+          width: 40px;
+        }
+
+        .dropzone {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+          min-height: 60px;
+          flex: 1;
+        }
+
+        .track {
+          background-color: #282828;
+          padding: 8px 12px;
+          border-radius: 6px;
+          cursor: grab;
+          user-select: none;
+            transition: background-color 0.2s;
+        }
+
+        .track.dragging {
+          opacity: 0.5;
+        }
+
+        .track:hover {
+            background-color: #333;
+        }
+
     </style>
 </head>
 
@@ -42,19 +87,46 @@
     <h1>RANKER</h1>
     <div class="container">
         <div id="track-info" style="float:left">
-            <p id="track-name"></p>
+            <p>Next Track</p>
+            <div id="incoming" class="dropzone"></div>
             <iframe id="spot_embed" style="border-radius:12px" width="100%" height="352" frameBorder="0" allowfullscreen="" allow="fullscreen;" loading="lazy"></iframe>
-            <button onclick="getNextTrack()">Generate New Random Track</button>
+            <button id="new-track" onclick="getNextTrack()">Generate New Random Track</button>
         </div>
 
-        <div class="track" data-id="track_id">Track Name</div>
-
-        <div class="tier" id="S"><h3>S Tier</h3></div>
-        <div class="tier" id="A"><h3>A Tier</h3></div>
-        <div class="tier" id="B"><h3>B Tier</h3></div>
-        <div class="tier" id="C"><h3>C Tier</h3></div>
-        <div class="tier" id="D"><h3>D Tier</h3></div>
-        <div class="tier" id="F"><h3>F Tier</h3></div>
+        <div class="tiers" id="tier-list">
+            <div class="tier" data-tier="S">
+                <div class="tier-label">S</div>
+                <div class="dropzone" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+            </div>
+            <div class="tier" data-tier="A">
+                <div class="tier-label">A</div>
+                <div class="dropzone" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+            </div>
+            <div class="tier" data-tier="B">
+                <div class="tier-label">B</div>
+                <div class="dropzone" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+            </div>
+            <div class="tier" data-tier="C">
+                <div class="tier-label">C</div>
+                <div class="dropzone" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+            </div>
+            <div class="tier" data-tier="D">
+                <div class="tier-label">D</div>
+                <div class="dropzone" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+            </div>
+            <div class="tier" data-tier="F">
+                <div class="tier-label">F</div>
+                <div class="dropzone" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+            </div>
+            <div class="tier" data-tier="no-listen">
+                <div class="tier-label">Haven't Heard It</div>
+                <div class="dropzone" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+            </div>
+            <div class="tier" data-tier="instrumental">
+                <div class="tier-label">Instrumental</div>
+                <div class="dropzone" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
+            </div>
+        </div>
 
     </div>
     <div style="clear: both;"></div>
@@ -62,43 +134,87 @@
 
 </body>
 </html>
-
+<!-- TODO: implement spotify sdk to integrate actual player, allow user to play song by clicking on icon in ranking -->
 <script>
 
-    ['S', 'A', 'B', 'C', 'D', 'F'].forEach(tier => {
-    new Sortable(document.getElementById(tier), {
-        group: 'tracks',
-        animation: 150
-    });
-    });
+    function allowDrop(e) {
+      e.preventDefault();
+    }
 
-let currentTrack = null;
+    function drag(e) {
+      e.dataTransfer.setData("text/plain", e.target.id);
+      e.target.classList.add("dragging");
+
+    }
+
+    function drop(e) {
+      e.preventDefault();
+      const id = e.dataTransfer.getData("text/plain");
+      const track = document.getElementById(id);
+      track.classList.remove("dragging");
 
 
-async function getNextTrack() {
-    const res = await fetch("api/rank/next");
-    const data = await res.json();
-    currentTrack = data;
+      if (e.target.classList.contains("track")) {
+          e.target.parentNode.insertBefore(track, e.target)
+      }
+      else if (e.target.classList.contains("dropzone")) {
+          e.currentTarget.appendChild(track);
+      }
 
-    document.getElementById("track-name").textContent = `${data.track_name} on ${data.album_name}`;
-    document.getElementById("spot_embed").src = 'https://open.spotify.com/embed/track/' + data.track_id + '?utm_source=generator';
+      document.getElementById("new-track").disabled = false;
 
-}
+    }
 
-async function rankTrack(rank) {
+    let currentTrack = null;
+    let trackCount = 0;
 
-    await fetch("api/rank/submit", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({
-            track_id: currentTrack.track_id,
-            ranking: rank
-        })
-    });
+    async function getNextTrack() {
 
-    await getNextTrack();
+        const res = await fetch("api/rank/next");
+        const data = await res.json();
+        const track = document.createElement("div");
+        track.className = "track";
+        track.id = "track-" + trackCount++;
+        track.draggable = true;
+        track.ondragstart = drag;
 
-}
+        const text = document.createElement("p");
+        text.id = "track-name";
+        text.textContent = data.track_name;
+        text.draggable = false;
 
-window.onload = getNextTrack()
+
+        const img = document.createElement("img");
+        img.src = data.album_art;  // Replace with album_url
+        img.alt = "Album art";
+        img.style.width = "50px";
+        img.style.borderRadius = "6px";
+        img.draggable = false;
+
+        track.appendChild(text);
+        track.appendChild(img);
+
+        currentTrack = data;
+        document.getElementById("incoming").appendChild(track);
+
+        document.getElementById("spot_embed").src = 'https://open.spotify.com/embed/track/' + data.track_id + '?utm_source=generator';
+        document.getElementById("new-track").disabled = true;
+    }
+
+    async function rankTrack(rank) {
+
+        await fetch("api/rank/submit", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({
+                track_id: currentTrack.track_id,
+                ranking: rank
+            })
+        });
+
+        await getNextTrack();
+
+    }
+
+    window.onload = getNextTrack()
 </script>

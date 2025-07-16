@@ -180,11 +180,12 @@ async def ranker():
 
     track = ranking_tracks.pop()
 
-
+    print(track)
     return {
         "track_name": track["name"],
         "track_id": track["id"],
-        "album_name": track["album"]
+        "album_name": track["album"],
+        "album_art": track["image_url"]
     }
 
 @app.get("/ranker")
@@ -230,7 +231,8 @@ async def ranker(request: Request, access_token: str = Cookie(None)):
                 tracks.append({
                     "name": track.get("name"),
                     "id": track.get("id"),
-                    "album": album.get("name")
+                    "album": album.get("name"),
+                    "image_url": album.get("image_url")
                 })
             url = data.get("next")
 
