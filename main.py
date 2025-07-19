@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse, FileResponse
+from fastapi.responses import HTMLResponse, FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 import requests
@@ -7,6 +7,10 @@ import uvicorn
 from starlette.responses import RedirectResponse
 from fastapi import Cookie
 import random
+from pydantic import BaseModel
+from typing import List
+
+
 
 client_id = "7a84e47e4908413cbbb2386b7e1e2aeb"
 client_secret = "2e83d8fd6af3436491f364203e5c6757"
@@ -18,7 +22,10 @@ app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
+master_ranking_tracks = []
 ranking_tracks = []
+ranking_albums = []
+
 
 @app.get("/favicon.ico", include_in_schema=False)
 async def favicon():
@@ -164,9 +171,6 @@ async def analytics(request: Request, access_token: str = Cookie(None)):
             "artist_name": artist[0].get("name"),
         })
 
-    print(tracks)
-    print(artists)
-
     return templates.TemplateResponse("analytics.html", {"request": request, "artist_info": artists, "track_info": tracks})
 
 #========================================================#
@@ -176,27 +180,74 @@ async def analytics(request: Request, access_token: str = Cookie(None)):
 @app.get("/api/rank/next") #return next randomized track to user
 async def ranker():
     if not ranking_tracks:
-        return None
-
+        return JSONResponse(
+            content={"error": "No tracks remaining. Please select more albums."},
+            status_code=400
+        )
     track = ranking_tracks.pop()
 
-    print(track)
+
     return {
         "track_name": track["name"],
         "track_id": track["id"],
         "album_name": track["album"],
+        "album_id": track["album_id"],
         "album_art": track["image_url"]
     }
 
+@app.get("/api/search")
+async def search(query: str, access_token: str = Cookie(None)):
+    headers = {"Authorization": f"Bearer {access_token}"}
+    url = f"https://api.spotify.com/v1/search?q={query}&type=artist&limit=7"
+
+    res = []
+
+    response = requests.get(url=url, headers=headers)
+    data = response.json()
+    data = data.get("artists", {})
+    for item in data.get("items", []):
+        imgs = item.get("images", [])
+        print(imgs)
+        if imgs and len(imgs) > 0:
+            img_url = imgs[0].get("url")
+        else:
+            img_url = f"static/blank_pfp.jpg"
+
+        res.append({
+            "name": item.get("name"),
+            "id": item.get("id"),
+            "img_url": img_url
+        })
+    return res
+
+@app.get("/api/albums")
+async def albums():
+    return ranking_albums
+
+
+class ResetRequest(BaseModel):
+    album_ids: List[str]
+@app.post("/api/ranker/reset")
+async def reset(request: ResetRequest):
+    global ranking_tracks
+
+
+    filtered_tracks = [
+        track for track in master_ranking_tracks if track.get("album_id") in request.album_ids
+    ]
+
+    ranking_tracks = filtered_tracks
+    random.shuffle(ranking_tracks)
+
+    return {"status": "ok", "remaining": len(ranking_tracks)}
+
 @app.get("/ranker")
-async def ranker(request: Request, access_token: str = Cookie(None)):
+async def ranker(request: Request, artist_id: str = "6yJ6QQ3Y5l0s0tn7b0arrO", access_token: str = Cookie(None)):
     headers = {"Authorization": f"Bearer {access_token}"}
     # TODO: not require auth here, optional top artist ranking
 
-    artist_uri = "6yJ6QQ3Y5l0s0tn7b0arrO"  # peggy
-    # artist_uri = id
 
-    url = f"https://api.spotify.com/v1/artists/{artist_uri}/albums?include_groups=album"
+    url = f"https://api.spotify.com/v1/artists/{artist_id}/albums?include_groups=album"
     # TODO: option for including features, etc from spot api options
 
     albums = []
@@ -232,16 +283,21 @@ async def ranker(request: Request, access_token: str = Cookie(None)):
                     "name": track.get("name"),
                     "id": track.get("id"),
                     "album": album.get("name"),
+                    "album_id": album.get("id"),
                     "image_url": album.get("image_url")
                 })
             url = data.get("next")
 
     global ranking_tracks
+    global ranking_albums
+    global master_ranking_tracks
+    ranking_albums = albums
     ranking_tracks = tracks
+    master_ranking_tracks = tracks.copy()
     random.shuffle(ranking_tracks)
 
     return templates.TemplateResponse("ranker.html", {"request": request})
 
 
 if __name__ == "__main__":
-    uvicorn.run(app)
+    uvicorn.run(app, reload=True)

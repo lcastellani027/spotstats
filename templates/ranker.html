@@ -8,17 +8,19 @@
         h1 {
             font-family: Roboto, sans-serif;
             text-align: center;
-            padding-top: 10px;
+
             color: white;
             background: linear-gradient(90deg, #ff7e5f, #feb47b);
         }
+
         body {
             font-family: Arial, sans-serif;
             text-align: center;
-            padding-top: 100px;
+
             background-color: #121212;
             color: white;
         }
+
         .button {
             background-color: #1DB954;
             border: none;
@@ -30,9 +32,11 @@
             text-decoration: none;
             transition: background-color 0.3s ease;
         }
+
         .button:hover {
             background-color: #1ed760;
         }
+
         .tiers {
           display: flex;
           flex-direction: column;
@@ -91,9 +95,204 @@
           border-radius: 2px;
         }
 
+        .search {
+          overflow: hidden;
+          background-color: #e9e9e9;
+        }
+
+        .search input[type=text] {
+          float: right;
+          padding: 6px;
+          border: none;
+          margin-top: 8px;
+          margin-right: 16px;
+          font-size: 17px;
+        }
+
+        .search {
+            background-color: #1e1e1e;
+            padding: 20px;
+            margin: 30px auto;
+            max-width: 600px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.6);
+        }
+
+        .search label {
+            display: block;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #1DB954;
+        }
+
+        .search input[type="text"] {
+            width: 70%;
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 8px;
+            border: none;
+            outline: none;
+            margin-right: 10px;
+            background-color: #2a2a2a;
+            color: white;
+        }
+
+        .search button {
+            padding: 10px 20px;
+            background-color: #1DB954;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .search button:hover {
+            background-color: #1ed760;
+        }
+
+        #artist-results {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .artist-image {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 16px;
+        }
+
+        .artist-name {
+            font-size: 18px;
+            font-weight: bold;
+            margin: 0;
+            color: white;
+        }
+
+        .artist-info {
+            flex-grow: 1;
+            text-align: left;
+        }
+
+        .search-result {
+            background-color: #2c2c2c;
+            padding: 12px 16px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: white;
+            border: 1px solid #333;
+            transition: background-color 0.2s ease;
+        }
+
+        .search-result:hover {
+            background-color: #3a3a3a;
+        }
+
+        .search-result button {
+            background-color: #1DB954;
+            padding: 6px 12px;
+            border: none;
+            border-radius: 6px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .search-result button:hover {
+            background-color: #1ed760;
+        }
+
+        #album-filters {
+            background-color: #1e1e1e;
+            padding: 12px;
+            border-radius: 10px;
+            margin-top: 20px;
+            color: white;
+            max-width: 300px;
+        }
+
+        #album-checkboxes {
+            max-height: 200px;
+            overflow-y: auto;
+            text-align: left;
+        }
+
+        #album-checkboxes label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 14px;
+        }
+
+        #album-filter-section {
+            background-color: #1e1e1e;
+            padding: 16px;
+            border-radius: 12px;
+            margin-top: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+            color: white;
+        }
+
+        .album-option {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px;
+            border-bottom: 1px solid #2c2c2c;
+        }
+
+        .album-thumb {
+            width: 48px;
+            height: 48px;
+            border-radius: 6px;
+            object-fit: cover;
+        }
+
+        .album-option label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .album-option input[type="checkbox"] {
+            transform: scale(1.2);
+            accent-color: #1DB954;
+        }
+
+        .album-name {
+            font-weight: 500;
+        }
+
+        #album-filter-section button {
+            background-color: #1DB954;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 6px 12px;
+            margin-right: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        #album-filter-section button:hover {
+            background-color: #1ed760;
+        }
+
     </style>
 </head>
-
 
 <body>
     <h1>RANKER</h1>
@@ -103,6 +302,16 @@
             <div id="incoming" class="dropzone"></div>
             <iframe id="spot_embed" style="border-radius:12px" width="100%" height="352" frameBorder="0" allowfullscreen="" allow="fullscreen;" loading="lazy"></iframe>
             <button id="new-track" onclick="getNextTrack()">Generate New Random Track</button>
+
+            <div id="album-filters">
+                <h3>Filter Albums</h3>
+                <div style="margin-bottom: 10px;">
+                    <button onclick="selectAllAlbums()">Select All</button>
+                    <button onclick="deselectAllAlbums()">Deselect All</button>
+                </div>
+                <div id="album-checkboxes"></div>
+                <button onclick="refreshWithSelectedAlbums()">Refresh Ranking Pool</button>
+            </div>
         </div>
 
         <div class="tiers" id="tier-list">
@@ -139,9 +348,14 @@
                 <div class="dropzone" ondragover="allowDrop(event)" ondrop="drop(event)"></div>
             </div>
         </div>
-
     </div>
     <div style="clear: both;"></div>
+    <div class="search">
+        <label for="q">Search For Artists:</label>
+        <input type="text" placeholder="Search.." id="q" name="q">
+        <button onclick="searchArtists()">Submit</button>
+        <div id="artist-results"></div>
+    </div>
 
 
 </body>
@@ -149,37 +363,39 @@
 <!-- TODO: implement spotify sdk to integrate actual player, allow user to play song by clicking on icon in ranking -->
 <script>
 
+    let currentTrack = null;
+    let trackCount = 0;
+
     let dropIndicator = document.createElement("div");
     dropIndicator.className = "drop-indicator";
 
     function allowDrop(e) {
-      e.preventDefault();
-      const dropzone = e.currentTarget;
+        e.preventDefault();
+        const dropzone = e.currentTarget;
 
-      const dragging = document.querySelector(".dragging");
-      if (!dragging || !dropzone.classList.contains("dropzone")) return;
+        const dragging = document.querySelector(".dragging");
+        if (!dragging || !dropzone.classList.contains("dropzone"))
+            return;
 
+        document.querySelectorAll(".drop-indicator").forEach(el => el.remove());
 
-    document.querySelectorAll(".drop-indicator").forEach(el => el.remove());
+        const children = [...dropzone.children].filter(el => !el.classList.contains("drop-indicator"));
 
-    const children = [...dropzone.children].filter(el => !el.classList.contains("drop-indicator"));
+        let inserted = false;
+        for (const child of children) {
+            const box = child.getBoundingClientRect();
+            const offset = e.clientX - box.left;
 
-    let inserted = false;
-      for (const child of children) {
-        const box = child.getBoundingClientRect();
-        const offset = e.clientX - box.left;
-
-        if (offset < box.width / 2) {
-          dropzone.insertBefore(dropIndicator, child);
-          inserted = true;
-          break;
+            if (offset < box.width / 2) {
+                dropzone.insertBefore(dropIndicator, child);
+                inserted = true;
+                break;
+            }
         }
-      }
 
-      if (!inserted) {
-        dropzone.appendChild(dropIndicator);
-      }
-
+        if (!inserted) {
+            dropzone.appendChild(dropIndicator);
+        }
     }
 
     function drag(e) {
@@ -217,9 +433,6 @@
 
     }
 
-    let currentTrack = null;
-    let trackCount = 0;
-
     async function getNextTrack() {
 
         const res = await fetch("api/rank/next");
@@ -237,7 +450,7 @@
 
 
         const img = document.createElement("img");
-        img.src = data.album_art;  // Replace with album_url
+        img.src = data.album_art;
         img.alt = "Album art";
         img.style.width = "50px";
         img.style.borderRadius = "6px";
@@ -256,20 +469,125 @@
         document.getElementById("new-track").disabled = true;
     }
 
-    async function rankTrack(rank) {
-
-        await fetch("api/rank/submit", {
-            method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({
-                track_id: currentTrack.track_id,
-                ranking: rank
-            })
+    function selectAllAlbums() {
+        document.querySelectorAll("#album-checkboxes input[type='checkbox']").forEach(cb => {
+            cb.checked = true;
         });
+    }
 
-        await getNextTrack();
+    function deselectAllAlbums() {
+        document.querySelectorAll("#album-checkboxes input[type='checkbox']").forEach(cb => {
+            cb.checked = false;
+        });
+    }
 
+    function refreshWithSelectedAlbums() {
+        const selected = Array.from(document.querySelectorAll("#album-checkboxes input:checked"))
+        .map(cb => cb.value);
+
+        if (!confirm("This will reset your entire ranking. Continue?")) return;
+
+        fetch("/api/ranker/reset", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ album_ids: selected })
+        }).then(res => {
+            if (!res.ok) {
+                console.error("Reset failed", res);
+            } else {
+                document.getElementById("incoming").innerHTML = "";
+
+                document.querySelectorAll(".dropzone").forEach(zone => {
+                    zone.innerHTML = "";
+                });
+
+                getNextTrack(); // Reload next track
+            }
+        }).catch(err => {
+            console.error("Network error:", err);
+        });
+    }
+
+    async function showAlbums() {
+        const res = await fetch("/api/albums");
+        const albums = await res.json();
+
+        const container = document.getElementById("album-checkboxes");
+        container.innerHTML = "";
+
+
+        for (const album of albums) {
+            const wrapper = document.createElement("div");
+        wrapper.className = "album-option";
+
+        const img = document.createElement("img");
+        img.src = album.image_url;
+        img.alt = album.name;
+        img.className = "album-thumb";
+
+        const label = document.createElement("label");
+
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.value = album.id;
+        checkbox.checked = true;
+
+        const name = document.createElement("span");
+        name.textContent = album.name;
+        name.className = "album-name";
+
+        label.appendChild(checkbox);
+        label.appendChild(name);
+        wrapper.appendChild(img);
+        wrapper.appendChild(label);
+
+        container.appendChild(wrapper);
+        }
+    }
+
+    async function searchArtists() {
+        let searchCount = 0;
+        const query = document.getElementById("q").value;
+
+
+        const url = "api/search?query=" + query;
+
+        const res = await fetch(url);
+        const data = await res.json();
+
+        for (const artist of data) {
+            const artist_block = document.createElement("div");
+            artist_block.className = "search-result"
+            artist_block.id = "artist-" + searchCount++
+
+            const img = document.createElement("img");
+            img.src = artist.img_url;
+            img.alt = artist.name;
+            img.className = "artist-image";
+
+            const infoWrapper = document.createElement("div");
+            infoWrapper.className = "artist-info";
+
+            const info = document.createElement("p");
+            info.id = "artist-search-info";
+            info.textContent = artist.name;
+
+            const select_button = document.createElement("button");
+            select_button.id = "select-button";
+            select_button.textContent = "Choose";
+            select_button.onclick = () => {
+                window.location.href = "/ranker?artist_id=" + artist.id;
+            };
+
+            infoWrapper.appendChild(info);
+            artist_block.appendChild(img);
+            artist_block.appendChild(infoWrapper);
+            artist_block.appendChild(select_button);
+
+            document.getElementById("artist-results").appendChild(artist_block);
+        }
     }
 
     window.onload = getNextTrack()
+    window.onload = showAlbums()
 </script>
