@@ -16,7 +16,7 @@ client_id = "7a84e47e4908413cbbb2386b7e1e2aeb"
 client_secret = "2e83d8fd6af3436491f364203e5c6757"
 redirect_uri = "http://localhost:8000/callback"
 
-prog_scope = ["playlist-read-private", "playlist-read-collaborative", "user-top-read"]
+prog_scope = ["playlist-read-private", "playlist-read-collaborative", "user-top-read", "user-modify-playback-state", "streaming"]
 app = FastAPI()
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -296,7 +296,7 @@ async def ranker(request: Request, artist_id: str = "6yJ6QQ3Y5l0s0tn7b0arrO", ac
     master_ranking_tracks = tracks.copy()
     random.shuffle(ranking_tracks)
 
-    return templates.TemplateResponse("ranker.html", {"request": request})
+    return templates.TemplateResponse("ranker.html", {"request": request, "access_token": access_token})
 
 
 if __name__ == "__main__":
